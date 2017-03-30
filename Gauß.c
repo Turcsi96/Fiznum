@@ -30,7 +30,7 @@ double bigabsVal(double* mat, int rows, int whichrow)
 		}
 	}
 	double absperrow=abs;
-	printf("\n%g\n",absperrow);
+	//printf("\n%g\n",absperrow);
 	return absperrow;
 }
 
@@ -70,7 +70,8 @@ int baVLunderDiag(double* mat, int rows, int whichcol){
 		printf("\nNot so many rows!\n");
 	}
 //------------------------------------------------------------------
-	int Location=0;
+	int Location=(whichcol)*5+whichcol;
+	int Locrow=0;
 	double abs=sqrt((mat[whichcol*(1+rows)])*(mat[whichcol*(1+rows)]));
 	for(int i=(whichcol*(1+rows)+rows);i<(rows*(rows-1)+1+whichcol);i+=rows){
 		double act=sqrt(mat[i]*mat[i]);
@@ -79,9 +80,15 @@ int baVLunderDiag(double* mat, int rows, int whichcol){
 			Location=i;
 		}
 	}
+	for(int i=0;i<rows;i++){
+		if(i*5<=Location){
+			Locrow=i;
+		}	
+	}
 	//double maxunderdiag=abs;
-	//printf("%g\n",maxunderdiag);
-	return Location;
+	//printf("%d\n",Location);
+	//printf("%d\n",Locrow);
+	return Locrow;
 }
 
 
@@ -203,14 +210,13 @@ while(k < cols){
 	k++;
 }
 
-
-/*int l=0;
+int l=0;
 while(l < cols){
 	int Loc=baVLunderDiag(matrix,rows,l);
 	swaprow(matrix,rows,l,Loc);
 
 	l++;
-}*/
+}
 
 
 printmatrix(matrix,rows,cols);
