@@ -46,6 +46,8 @@ void multwithanum(double* mat, int multiplicand, double multiplier, int cols){
 	}
 }
 
+
+
 /*
 double baVunderDiag(double* mat, int rows, int whichcol){
 	if(whichcol>=rows){
@@ -80,11 +82,18 @@ int baVLunderDiag(double* mat, int rows, int whichcol){
 			Location=i;
 		}
 	}
+
+	/*if(abs==0){
+		printf("\nSingular matrix detected!!!\n");
+		return -1;
+	}*/
+
 	for(int i=0;i<rows;i++){
 		if(i*5<=Location){
 			Locrow=i;
 		}	
 	}
+	
 	//double maxunderdiag=abs;
 	//printf("%d\n",Location);
 	//printf("%d\n",Locrow);
@@ -148,7 +157,7 @@ void swapcol(double* mat, int rows, int thiscol, int thatcol, int* colcounter){
 	if(thiscol==thatcol){
 		printf("You can not swap a row with himself!\n");
 	}
-//------------------------------------------------------------	
+//---------------------------------------------------------------------------------	
 	int k=0;
 	while(k<(rows-1)*2){
 		if(colcounter[k]==0){
@@ -172,21 +181,26 @@ void swapcol(double* mat, int rows, int thiscol, int thatcol, int* colcounter){
 }
 
 
-void divrows(double* mat, int rows, int minuend, int subtrahend, double* divrow){
-	double storage=0;
+void divrows(double* mat, int rows, int minuend, int subtrahend, double n/*double* divrow*/){
 	for(int i=minuend*rows;i<(minuend+1)*rows;i++){
-		divrow[i]=mat[i]-mat[(subtrahend-minuend)*rows+i];
-		printf("%g",divrow[i]);
+		mat[/*divrow*/i]=mat[i]-(1/n)*mat[i+((subtrahend-minuend)*rows)];
+		//printf("%g",divrow[i]);
+		if((sqrt(mat[i]*mat[i])<0.000001)){
+			mat[i]=0;
+		}
 	}
 }
+
+//---------------------------------Read matrix---------------------------------	
 
 
 int main(int argc, char* argv[]){
 double* matrix;
+double* eye;
 double pivot=0;
 int rows,cols;
 int* colcounter;
-double* divrow;
+/*double* divrow;*/
 if(argc!=4){
 	fprintf(stderr, "Not the right number of arguments!\n");
 	exit(-1);
@@ -195,13 +209,56 @@ rows=atoi(argv[1]);
 cols=atoi(argv[2]);
 matrix=(double*)calloc(rows*cols,sizeof(double));
 colcounter=(int*)calloc((rows-1)*2,sizeof(int));
-divrow=(double*)calloc(rows,sizeof(double));
+/*divrow=(double*)calloc(rows,sizeof(double));*/
+eye=(double*)calloc(rows*cols,sizeof(double));
 
 for(int i=0;i<(rows-1)*2;i++){colcounter[i]=0;}
+
+for(int i=0;i<rows*cols;i++){
+	if(i%(rows+1)==0){eye[i]=1;}
+	else{eye[i]=0;}
+}
 
 FILE* f=fopen(argv[3],"r");
 scanMatrix(f,matrix,rows,cols);
 fclose(f);
+
+//-------------------------------Singularity check-----------------------------------
+
+int n=0;
+double det=0;
+int jump;
+int m;
+double det1,det2;
+while(n<rows){
+	det1=1;
+	det2=1;
+	m=n;	
+	for(m;m<(rows+n);m++){
+		if((m+(m-n)*rows+1)%rows==0){
+			jump=1;
+		}
+		else{
+		jump=0;
+		}	
+		det1*=matrix[(m-jump)+((m-jump)-n)*rows+jump];
+		//printf("%g\n",det1);
+		det2=det2*matrix[m+rows*(cols-1)-((m+jump)-n)*rows];
+		//printf("\n%g\n",det2);
+	}
+	det+=det1;//-det2;
+	//printf("\n%g\n",det);
+	n+=1;
+}
+
+//printf("\n%g\n",det);
+
+	if(det==0){
+		printf("\nSingular matrix detected!!!\n");
+		return -1;
+	}
+
+//---------------------------------Invert matrix-------------------------------------
 
 int k=0;
 while(k < cols){
@@ -218,9 +275,36 @@ while(l < cols){
 	l++;
 }
 
-
 printmatrix(matrix,rows,cols);
+double num;
+int y=0;
+for(int i=0;i<rows*cols;i+=rows+1){
+	multwithanum(matrix,y,1/matrix[i],cols);
+	for(int k=0;k<rows-y-1;k++){
+		num=matrix[i]/matrix[i+rows*(k+1)];
+		divrows(matrix,rows,y+1+k,y,num);
+		divrows(eye,rows,y+1+k,y,num);		
+	}
+	y++;
+	
+}
 
+int q=rows-1;
+for(int i=rows*cols-1;i>0;i-=(rows+1)){
+	for(k=0;k<q;k++){
+		num=matrix[i]/matrix[i-rows*(k+1)];
+		divrows(matrix,rows,q-k-1,q,num);
+		divrows(eye,rows,q-k-1,q,num);		
+	}
+	q--;
+	
+}
+
+printf("\n");
+printmatrix(matrix,rows,cols);
+printf("\n");
+printmatrix(eye,rows,cols);
+printf("\n");
 /*multwithanum(matrix,2,2,cols);
 bigabsVal(matrix,rows,absperrow,2);
 baVunderDiag(matrix,rows,3,maxunderdiag);
@@ -231,6 +315,6 @@ printmatrix(matrix,rows,cols);
 swapcol(matrix,rows,2,4,colcounter);
 swapcol(matrix,rows,0,2,colcounter);
 printmatrix(matrix,rows,cols);
-divrows(matrix,rows,2,3,divrow);*/
+divrows(matrix,rows,2,3,/*divrow*//*);*/
 return 0;
 }
