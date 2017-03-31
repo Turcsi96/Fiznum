@@ -10,7 +10,7 @@ void scanMatrix(FILE *infile, double *mat, int rows, int cols)
     for( j = 0; j < rows; j++) {
         for( i = 0; i < cols; i++) {
             fscanf(infile,"%lf",&(mat[cols * j  + i]));
-            printf("%g",mat[cols*j+i]);
+            //printf("%g",mat[cols*j+i]);
         }
     }
 }
@@ -224,7 +224,7 @@ scanMatrix(f,matrix,rows,cols);
 fclose(f);
 
 //-------------------------------Singularity check-----------------------------------
-
+/*
 int n=0;
 double det=0;
 int jump;
@@ -242,12 +242,12 @@ while(n<rows){
 		jump=0;
 		}	
 		det1*=matrix[(m-jump)+((m-jump)-n)*rows+jump];
-		//printf("%g\n",det1);
+		printf("%g\n",det1);
 		det2=det2*matrix[m+rows*(cols-1)-((m+jump)-n)*rows];
-		//printf("\n%g\n",det2);
+		printf("\n%g\n",det2);
 	}
-	det+=det1;//-det2;
-	//printf("\n%g\n",det);
+	det+=det1-det2;
+	printf("\n%g\n",det);
 	n+=1;
 }
 
@@ -257,39 +257,58 @@ while(n<rows){
 		printf("\nSingular matrix detected!!!\n");
 		return -1;
 	}
-
+*/
 //---------------------------------Invert matrix-------------------------------------
-
 int k=0;
 while(k < cols){
 	double a=bigabsVal(matrix,rows,k);
 	multwithanum(matrix,k,1/a,cols);
+	multwithanum(eye,k,1/a,cols);
 	k++;
 }
 
+
 int l=0;
-while(l < cols){
+int y=0;
+double s;
+for(int i=0;i<rows*cols;i+=rows+1){
 	int Loc=baVLunderDiag(matrix,rows,l);
 	swaprow(matrix,rows,l,Loc);
+	swaprow(eye,rows,l,Loc);
+	s=1/matrix[i];
+	multwithanum(matrix,y,s,cols);
+	multwithanum(eye,y,s,cols);
+	double num;
 
-	l++;
-}
-
-printmatrix(matrix,rows,cols);
-double num;
-int y=0;
-for(int i=0;i<rows*cols;i+=rows+1){
-	multwithanum(matrix,y,1/matrix[i],cols);
 	for(int k=0;k<rows-y-1;k++){
 		num=matrix[i]/matrix[i+rows*(k+1)];
 		divrows(matrix,rows,y+1+k,y,num);
 		divrows(eye,rows,y+1+k,y,num);		
 	}
 	y++;
-	
+	l++;	
 }
 
+
+/*
+double num;
+int y=0;
+for(int i=0;i<rows*cols;i+=rows+1){
+	multwithanum(matrix,y,1/matrix[i],cols);
+	multwithanum(eye,y,1/matrix[i],cols);
+	for(int k=0;k<rows-y-1;k++){
+		num=matrix[i]/matrix[i+rows*(k+1)];
+		printmatrix(matrix,rows,cols);
+		divrows(matrix,rows,y+1+k,y,num);
+		divrows(eye,rows,y+1+k,y,num);		
+	}
+	y++;
+	
+}
+*/
+
 int q=rows-1;
+double num;
 for(int i=rows*cols-1;i>0;i-=(rows+1)){
 	for(k=0;k<q;k++){
 		num=matrix[i]/matrix[i-rows*(k+1)];
@@ -299,9 +318,10 @@ for(int i=rows*cols-1;i>0;i-=(rows+1)){
 	q--;
 	
 }
+;
 
-printf("\n");
-printmatrix(matrix,rows,cols);
+//printf("\n");
+//printmatrix(matrix,rows,cols);
 printf("\n");
 printmatrix(eye,rows,cols);
 printf("\n");
